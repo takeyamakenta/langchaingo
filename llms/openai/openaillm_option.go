@@ -2,6 +2,7 @@ package openai
 
 import (
 	"github.com/tmc/langchaingo/callbacks"
+	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/openai/internal/openaiclient"
 )
 
@@ -43,7 +44,7 @@ type options struct {
 }
 
 // Option is a functional option for the OpenAI client.
-type Option func(*options)
+type Option = llms.CallOption
 
 // ResponseFormat is the response format for the OpenAI client.
 type ResponseFormat = openaiclient.ResponseFormat
@@ -54,8 +55,10 @@ var ResponseFormatJSON = &ResponseFormat{Type: "json_object"} //nolint:gocheckno
 // WithToken passes the OpenAI API token to the client. If not set, the token
 // is read from the OPENAI_API_KEY environment variable.
 func WithToken(token string) Option {
-	return func(opts *options) {
-		opts.token = token
+	return func(opts llms.ICallOptions) {
+		if a, ok := opts.(*options); ok {
+			a.token = token
+		}
 	}
 }
 
@@ -63,15 +66,19 @@ func WithToken(token string) Option {
 // is read from the OPENAI_MODEL environment variable.
 // Required when ApiType is Azure.
 func WithModel(model string) Option {
-	return func(opts *options) {
-		opts.model = model
+	return func(opts llms.ICallOptions) {
+		if a, ok := opts.(*options); ok {
+			a.model = model
+		}
 	}
 }
 
 // WithEmbeddingModel passes the OpenAI model to the client. Required when ApiType is Azure.
 func WithEmbeddingModel(embeddingModel string) Option {
-	return func(opts *options) {
-		opts.embeddingModel = embeddingModel
+	return func(opts llms.ICallOptions) {
+		if a, ok := opts.(*options); ok {
+			a.embeddingModel = embeddingModel
+		}
 	}
 }
 
@@ -79,53 +86,67 @@ func WithEmbeddingModel(embeddingModel string) Option {
 // is read from the OPENAI_BASE_URL environment variable. If still not set in ENV
 // VAR OPENAI_BASE_URL, then the default value is https://api.openai.com/v1 is used.
 func WithBaseURL(baseURL string) Option {
-	return func(opts *options) {
-		opts.baseURL = baseURL
+	return func(opts llms.ICallOptions) {
+		if a, ok := opts.(*options); ok {
+			a.baseURL = baseURL
+		}
 	}
 }
 
 // WithOrganization passes the OpenAI organization to the client. If not set, the
 // organization is read from the OPENAI_ORGANIZATION.
 func WithOrganization(organization string) Option {
-	return func(opts *options) {
-		opts.organization = organization
+	return func(opts llms.ICallOptions) {
+		if a, ok := opts.(*options); ok {
+			a.organization = organization
+		}
 	}
 }
 
 // WithAPIType passes the api type to the client. If not set, the default value
 // is APITypeOpenAI.
 func WithAPIType(apiType APIType) Option {
-	return func(opts *options) {
-		opts.apiType = apiType
+	return func(opts llms.ICallOptions) {
+		if a, ok := opts.(*options); ok {
+			a.apiType = apiType
+		}
 	}
 }
 
 // WithAPIVersion passes the api version to the client. If not set, the default value
 // is DefaultAPIVersion.
 func WithAPIVersion(apiVersion string) Option {
-	return func(opts *options) {
-		opts.apiVersion = apiVersion
+	return func(opts llms.ICallOptions) {
+		if a, ok := opts.(*options); ok {
+			a.apiVersion = apiVersion
+		}
 	}
 }
 
 // WithHTTPClient allows setting a custom HTTP client. If not set, the default value
 // is http.DefaultClient.
 func WithHTTPClient(client openaiclient.Doer) Option {
-	return func(opts *options) {
-		opts.httpClient = client
+	return func(opts llms.ICallOptions) {
+		if a, ok := opts.(*options); ok {
+			a.httpClient = client
+		}
 	}
 }
 
 // WithCallback allows setting a custom Callback Handler.
 func WithCallback(callbackHandler callbacks.Handler) Option {
-	return func(opts *options) {
-		opts.callbackHandler = callbackHandler
+	return func(opts llms.ICallOptions) {
+		if a, ok := opts.(*options); ok {
+			a.callbackHandler = callbackHandler
+		}
 	}
 }
 
 // WithResponseFormat allows setting a custom response format.
 func WithResponseFormat(responseFormat *ResponseFormat) Option {
-	return func(opts *options) {
-		opts.responseFormat = responseFormat
+	return func(opts llms.ICallOptions) {
+		if a, ok := opts.(*options); ok {
+			a.responseFormat = responseFormat
+		}
 	}
 }

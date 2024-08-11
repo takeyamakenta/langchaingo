@@ -2,8 +2,11 @@ package llms
 
 import "context"
 
+type ICallOptions interface {
+}
+
 // CallOption is a function that configures a CallOptions.
-type CallOption func(*CallOptions)
+type CallOption func(ICallOptions)
 
 // CallOptions is a set of options for calling models. Not all models support
 // all options.
@@ -107,161 +110,204 @@ const (
 
 // WithModel specifies which model name to use.
 func WithModel(model string) CallOption {
-	return func(o *CallOptions) {
-		o.Model = model
+	return func(o ICallOptions) {
+		if a, ok := o.(*CallOptions); ok {
+			a.Model = model
+		}
 	}
 }
 
 // WithMaxTokens specifies the max number of tokens to generate.
 func WithMaxTokens(maxTokens int) CallOption {
-	return func(o *CallOptions) {
-		o.MaxTokens = maxTokens
+	return func(o ICallOptions) {
+		if a, ok := o.(*CallOptions); ok {
+			a.MaxTokens = maxTokens
+		}
 	}
 }
 
 // WithCandidateCount specifies the number of response candidates to generate.
 func WithCandidateCount(c int) CallOption {
-	return func(o *CallOptions) {
-		o.CandidateCount = c
+	return func(o ICallOptions) {
+		if a, ok := o.(*CallOptions); ok {
+			a.CandidateCount = c
+		}
 	}
 }
 
 // WithTemperature specifies the model temperature, a hyperparameter that
 // regulates the randomness, or creativity, of the AI's responses.
 func WithTemperature(temperature float64) CallOption {
-	return func(o *CallOptions) {
-		o.Temperature = temperature
+	return func(o ICallOptions) {
+		if a, ok := o.(*CallOptions); ok {
+			a.Temperature = temperature
+		}
 	}
 }
 
 // WithStopWords specifies a list of words to stop generation on.
 func WithStopWords(stopWords []string) CallOption {
-	return func(o *CallOptions) {
-		o.StopWords = stopWords
+	return func(o ICallOptions) {
+		if a, ok := o.(*CallOptions); ok {
+			a.StopWords = stopWords
+		}
 	}
 }
 
 // WithOptions specifies options.
 func WithOptions(options CallOptions) CallOption {
-	return func(o *CallOptions) {
-		(*o) = options
+	return func(o ICallOptions) {
+		if a, ok := o.(*CallOptions); ok {
+			(*a) = options
+		}
 	}
 }
 
 // WithStreamingFunc specifies the streaming function to use.
 func WithStreamingFunc(streamingFunc func(ctx context.Context, chunk []byte) error) CallOption {
-	return func(o *CallOptions) {
-		o.StreamingFunc = streamingFunc
+	return func(o ICallOptions) {
+		if a, ok := o.(*CallOptions); ok {
+			a.StreamingFunc = streamingFunc
+		}
 	}
 }
 
 // WithTopK will add an option to use top-k sampling.
 func WithTopK(topK int) CallOption {
-	return func(o *CallOptions) {
-		o.TopK = topK
+	return func(o ICallOptions) {
+		if a, ok := o.(*CallOptions); ok {
+			a.TopK = topK
+		}
 	}
 }
 
 // WithTopP	will add an option to use top-p sampling.
 func WithTopP(topP float64) CallOption {
-	return func(o *CallOptions) {
-		o.TopP = topP
+	return func(o ICallOptions) {
+		if a, ok := o.(*CallOptions); ok {
+			a.TopP = topP
+		}
 	}
 }
 
 // WithSeed will add an option to use deterministic sampling.
 func WithSeed(seed int) CallOption {
-	return func(o *CallOptions) {
-		o.Seed = seed
+	return func(o ICallOptions) {
+		if a, ok := o.(*CallOptions); ok {
+			a.Seed = seed
+		}
 	}
 }
 
 // WithMinLength will add an option to set the minimum length of the generated text.
 func WithMinLength(minLength int) CallOption {
-	return func(o *CallOptions) {
-		o.MinLength = minLength
+	return func(o ICallOptions) {
+		if a, ok := o.(*CallOptions); ok {
+			a.MinLength = minLength
+		}
 	}
 }
 
 // WithMaxLength will add an option to set the maximum length of the generated text.
 func WithMaxLength(maxLength int) CallOption {
-	return func(o *CallOptions) {
-		o.MaxLength = maxLength
+	return func(o ICallOptions) {
+		if a, ok := o.(*CallOptions); ok {
+			a.MaxLength = maxLength
+		}
 	}
 }
 
 // WithN will add an option to set how many chat completion choices to generate for each input message.
 func WithN(n int) CallOption {
-	return func(o *CallOptions) {
-		o.N = n
+	return func(o ICallOptions) {
+		if a, ok := o.(*CallOptions); ok {
+			a.N = n
+		}
 	}
 }
 
 // WithRepetitionPenalty will add an option to set the repetition penalty for sampling.
 func WithRepetitionPenalty(repetitionPenalty float64) CallOption {
-	return func(o *CallOptions) {
-		o.RepetitionPenalty = repetitionPenalty
+	return func(o ICallOptions) {
+		if a, ok := o.(*CallOptions); ok {
+			a.RepetitionPenalty = repetitionPenalty
+		}
 	}
 }
 
 // WithFrequencyPenalty will add an option to set the frequency penalty for sampling.
 func WithFrequencyPenalty(frequencyPenalty float64) CallOption {
-	return func(o *CallOptions) {
-		o.FrequencyPenalty = frequencyPenalty
+	return func(o ICallOptions) {
+		if a, ok := o.(*CallOptions); ok {
+			a.FrequencyPenalty = frequencyPenalty
+		}
 	}
 }
 
 // WithPresencePenalty will add an option to set the presence penalty for sampling.
 func WithPresencePenalty(presencePenalty float64) CallOption {
-	return func(o *CallOptions) {
-		o.PresencePenalty = presencePenalty
+	return func(o ICallOptions) {
+		if a, ok := o.(*CallOptions); ok {
+			a.PresencePenalty = presencePenalty
+		}
 	}
 }
 
 // WithFunctionCallBehavior will add an option to set the behavior to use when calling functions.
 // Deprecated: Use WithToolChoice instead.
 func WithFunctionCallBehavior(behavior FunctionCallBehavior) CallOption {
-	return func(o *CallOptions) {
-		o.FunctionCallBehavior = behavior
+	return func(o ICallOptions) {
+		if a, ok := o.(*CallOptions); ok {
+			a.FunctionCallBehavior = behavior
+		}
 	}
 }
 
 // WithFunctions will add an option to set the functions to include in the request.
 // Deprecated: Use WithTools instead.
 func WithFunctions(functions []FunctionDefinition) CallOption {
-	return func(o *CallOptions) {
-		o.Functions = functions
+	return func(o ICallOptions) {
+		if a, ok := o.(*CallOptions); ok {
+			a.Functions = functions
+		}
 	}
 }
 
 // WithToolChoice will add an option to set the choice of tool to use.
 // It can either be "none", "auto" (the default behavior), or a specific tool as described in the ToolChoice type.
 func WithToolChoice(choice any) CallOption {
-	// TODO: Add type validation for choice.
-	return func(o *CallOptions) {
-		o.ToolChoice = choice
+	return func(o ICallOptions) {
+		if a, ok := o.(*CallOptions); ok {
+			a.ToolChoice = choice
+		}
 	}
 }
 
 // WithTools will add an option to set the tools to use.
 func WithTools(tools []Tool) CallOption {
-	return func(o *CallOptions) {
-		o.Tools = tools
+	return func(o ICallOptions) {
+		if a, ok := o.(*CallOptions); ok {
+			a.Tools = tools
+		}
 	}
 }
 
 // WithJSONMode will add an option to set the response format to JSON.
 // This is useful for models that return structured data.
 func WithJSONMode() CallOption {
-	return func(o *CallOptions) {
-		o.JSONMode = true
+	return func(o ICallOptions) {
+		if a, ok := o.(*CallOptions); ok {
+			a.JSONMode = true
+		}
 	}
 }
 
 // WithMetadata will add an option to set metadata to include in the request.
 // The meaning of this field is specific to the backend in use.
 func WithMetadata(metadata map[string]interface{}) CallOption {
-	return func(o *CallOptions) {
-		o.Metadata = metadata
+	return func(o ICallOptions) {
+		if a, ok := o.(*CallOptions); ok {
+			a.Metadata = metadata
+		}
 	}
 }

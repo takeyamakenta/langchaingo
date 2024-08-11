@@ -44,14 +44,21 @@ func (o *LLM) Call(ctx context.Context, prompt string, options ...llms.CallOptio
 }
 
 // GenerateContent implements the Model interface.
-func (o *LLM) GenerateContent(ctx context.Context, messages []llms.MessageContent, options ...llms.CallOption) (*llms.ContentResponse, error) { //nolint: lll, cyclop, goerr113, funlen
+func (o *LLM) GenerateContent(ctx context.Context, messages []llms.MessageContent, option ...llms.CallOption) (*llms.ContentResponse, error) { //nolint: lll, cyclop, goerr113, funlen
 	if o.CallbacksHandler != nil {
 		o.CallbacksHandler.HandleLLMGenerateContentStart(ctx, messages)
 	}
 
-	opts := llms.CallOptions{}
-	for _, opt := range options {
-		opt(&opts)
+	// llms general options
+	genOpts := llms.CallOptions{}
+	for _, opt := range option {
+		opt(&genOpts)
+	}
+
+	// openai specific options
+	oaiOpts := options{}
+	for _, opt := range option {
+		opt(&oaiOpts)
 	}
 
 	chatMsgs := make([]*ChatMessage, 0, len(messages))
@@ -96,27 +103,27 @@ func (o *LLM) GenerateContent(ctx context.Context, messages []llms.MessageConten
 		chatMsgs = append(chatMsgs, msg)
 	}
 	req := &openaiclient.ChatRequest{
-		Model:            opts.Model,
-		StopWords:        opts.StopWords,
+		Model:            genOpts.Model,
+		StopWords:        genOpts.StopWords,
 		Messages:         chatMsgs,
-		StreamingFunc:    opts.StreamingFunc,
-		Temperature:      opts.Temperature,
-		MaxTokens:        opts.MaxTokens,
-		N:                opts.N,
-		FrequencyPenalty: opts.FrequencyPenalty,
-		PresencePenalty:  opts.PresencePenalty,
+		StreamingFunc:    genOpts.StreamingFunc,
+		Temperature:      genOpts.Temperature,
+		MaxTokens:        genOpts.MaxTokens,
+		N:                genOpts.N,
+		FrequencyPenalty: genOpts.FrequencyPenalty,
+		PresencePenalty:  genOpts.PresencePenalty,
 
-		ToolChoice:           opts.ToolChoice,
-		FunctionCallBehavior: openaiclient.FunctionCallBehavior(opts.FunctionCallBehavior),
-		Seed:                 opts.Seed,
-		Metadata:             opts.Metadata,
+		ToolChoice:           genOpts.ToolChoice,
+		FunctionCallBehavior: openaiclient.FunctionCallBehavior(genOpts.FunctionCallBehavior),
+		Seed:                 genOpts.Seed,
+		Metadata:             genOpts.Metadata,
 	}
-	if opts.JSONMode {
+	if genOpts.JSONMode {
 		req.ResponseFormat = ResponseFormatJSON
 	}
 
 	// since req.Functions is deprecated, we need to use the new Tools API.
-	for _, fn := range opts.Functions {
+	for _, fn := range genOpts.Functions {
 		req.Tools = append(req.Tools, openaiclient.Tool{
 			Type: "function",
 			Function: openaiclient.FunctionDefinition{
@@ -126,8 +133,8 @@ func (o *LLM) GenerateContent(ctx context.Context, messages []llms.MessageConten
 			},
 		})
 	}
-	// if opts.Tools is not empty, append them to req.Tools
-	for _, tool := range opts.Tools {
+	// if genOpts.Tools is not empty, append them to req.Tools
+	for _, tool := range genOpts.Tools {
 		t, err := toolFromTool(tool)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert llms tool to openai tool: %w", err)
