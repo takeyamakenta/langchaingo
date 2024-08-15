@@ -143,9 +143,12 @@ func (o *LLM) GenerateContent(ctx context.Context, messages []llms.MessageConten
 		req.Tools = append(req.Tools, t)
 	}
 
-	// if o.client.ResponseFormat is set, use it for the request
+	// priority: oaiOpts.responseFormat > o.client.ResponseFormat
 	if o.client.ResponseFormat != nil {
 		req.ResponseFormat = o.client.ResponseFormat
+	}
+	if oaiOpts.responseFormat != nil {
+		req.ResponseFormat = oaiOpts.responseFormat
 	}
 
 	result, err := o.client.CreateChat(ctx, req)
