@@ -5,6 +5,12 @@ import (
 	"github.com/tmc/langchaingo/llms/openai/internal/openaiclient"
 )
 
+type ToolType = openaiclient.ToolType
+
+const (
+	ToolTypeFunction = openaiclient.ToolTypeFunction
+)
+
 type Tool struct {
 	openaiclient.Tool
 	CallFunc func(ctx context.Context, input string) (string, error)
