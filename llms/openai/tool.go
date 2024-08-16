@@ -8,7 +8,7 @@ import (
 
 type Tool struct {
 	openaiclient.Tool
-	CallFunc func(ctx context.Context, input string) (string, error)
+	callFunc func(ctx context.Context, input string) (string, error)
 }
 
 // NewTool creates a new tool.
@@ -24,7 +24,7 @@ func NewTool(funcDef llms.FunctionDefinition, callFunc func(ctx context.Context,
 			Type:		openaiclient.ToolTypeFunction,
 			Function:	oaiFuncDef,
 		},
-		CallFunc: callFunc,
+		callFunc: callFunc,
 	}
 }
 
@@ -37,6 +37,6 @@ func (t Tool) Description() string {
 }
 
 func (t Tool) Call(ctx context.Context, input string) (string, error) {
-	return t.CallFunc(context.Background(), input)
+	return t.callFunc(ctx, input)
 }
 
