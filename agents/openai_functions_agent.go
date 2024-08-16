@@ -7,6 +7,7 @@ import (
 
 	"github.com/tmc/langchaingo/callbacks"
 	"github.com/tmc/langchaingo/llms"
+	"github.com/tmc/langchaingo/llms/openai"
 	"github.com/tmc/langchaingo/prompts"
 	"github.com/tmc/langchaingo/schema"
 	"github.com/tmc/langchaingo/tools"
@@ -66,6 +67,44 @@ func (o *OpenAIFunctionsAgent) functions() []llms.FunctionDefinition {
 	return res
 }
 
+func (o *OpenAIFunctionsAgent) tools() []llms.Tool {
+	res := make([]llms.Tool, 0)
+	for _, tool := range o.Tools {
+		switch t := tool.(type) {
+			case openai.Tool:
+				llmsTool := llms.Tool{
+					Type: string(t.Type),
+					Function: &llms.FunctionDefinition{
+						Name:        t.Function.Name,
+						Description: t.Function.Description,
+						Parameters:  t.Function.Parameters,
+						Strict:      t.Function.Strict,
+					},
+				}
+				res = append(res, llmsTool)
+			default:
+				llmsTool := llms.Tool{
+					Type: "function",
+					Function: &llms.FunctionDefinition{
+						Name:        tool.Name(),
+						Description: tool.Description(),
+						Parameters: map[string]any{
+							"properties": map[string]any{
+								"__arg1": map[string]string{"title": "__arg1", "type": "string"},
+							},
+							"additionalProperties": false,
+							"required": []string{"__arg1"},
+							"type":     "object",
+						},
+						Strict: true,
+					},
+				}
+				res = append(res, llmsTool)
+		}
+	}
+	return res
+}
+
 // Plan decides what action to take or returns the final result of the input.
 func (o *OpenAIFunctionsAgent) Plan(
 	ctx context.Context,
@@ -86,8 +125,8 @@ func (o *OpenAIFunctionsAgent) Plan(
 			return nil
 		}
 	}
-
 	prompt, err := o.Prompt.FormatPrompt(fullInputs)
+	
 	if err != nil {
 		return nil, nil, err
 	}
@@ -116,7 +155,7 @@ func (o *OpenAIFunctionsAgent) Plan(
 					llms.ToolCall{
 						ID:           p.ToolCalls[0].ID,
 						Type:         p.ToolCalls[0].Type,
-						FunctionCall: p.ToolCalls[0].FunctionCall,
+						FunctionCall: p.FunctionCall,
 					},
 				},
 			}
@@ -130,7 +169,10 @@ func (o *OpenAIFunctionsAgent) Plan(
 	}
 
 	result, err := o.LLM.GenerateContent(ctx, mcList,
-		llms.WithFunctions(o.functions()), llms.WithStreamingFunc(stream))
+		//llms.WithFunctions(o.functions()),
+		llms.WithTools(o.tools()),
+		llms.WithStreamingFunc(stream),
+	)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -180,10 +222,24 @@ func (o *OpenAIFunctionsAgent) constructScratchPad(steps []schema.AgentStep) []l
 
 	messages := make([]llms.ChatMessage, 0)
 	for _, step := range steps {
-		messages = append(messages, llms.FunctionChatMessage{
-			Name:    step.Action.Tool,
-			Content: step.Observation,
+		// messages = append(messages, llms.FunctionChatMessage{
+		// 	Name:    step.Action.Tool,
+		// 	Content: step.Observation,
+		// })
+		messages = append(messages, llms.AIChatMessage{
+			FunctionCall: &llms.FunctionCall{Name: step.Action.Tool, Arguments: step.Action.ToolInput},
+			ToolCalls: []llms.ToolCall{
+				{
+					ID:           step.Action.ToolID,
+					Type:         "function",
+					FunctionCall: &llms.FunctionCall{Name: step.Action.Tool, Arguments: step.Action.ToolInput},
+				},
+			},
 		})
+		messages = append(messages, llms.ToolChatMessage{
+			ID:      step.Action.ToolID,
+			Content: step.Observation,
+		});
 	}
 
 	return messages
@@ -203,9 +259,9 @@ func (o *OpenAIFunctionsAgent) ParseOutput(contentResp *llms.ContentResponse) (
 			Log: choice.Content,
 		}, nil
 	}
-
 	// action
 	functionCall := choice.FuncCall
+	// key of the struct to be used as the tool name
 	functionName := functionCall.Name
 	toolInputStr := functionCall.Arguments
 	toolInputMap := make(map[string]any, 0)

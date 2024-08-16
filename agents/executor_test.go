@@ -2,6 +2,7 @@ package agents_test
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -9,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/tmc/langchaingo/agents"
 	"github.com/tmc/langchaingo/chains"
+	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/openai"
 	"github.com/tmc/langchaingo/prompts"
 	"github.com/tmc/langchaingo/schema"
@@ -114,7 +116,7 @@ func TestExecutorWithOpenAIFunctionAgent(t *testing.T) {
 		t.Skip("SERPAPI_API_KEY not set")
 	}
 
-	llm, err := openai.New()
+	llm, err := openai.New(llms.WithModel("gpt-4o-2024-08-06"))
 	require.NoError(t, err)
 
 	searchTool, err := serpapi.New()
@@ -138,6 +140,9 @@ func TestExecutorWithOpenAIFunctionAgent(t *testing.T) {
 	result, err := chains.Run(context.Background(), e, "what is HK singer Eason Chan's years old?") //nolint:lll
 	require.NoError(t, err)
 
-	require.True(t, strings.Contains(result, "47") || strings.Contains(result, "49"),
-		"correct answer 47 or 49 not in response")
+	fmt.Println(result)
+
+	require.True(t, strings.Contains(result, "47") || strings.Contains(result, "49") || strings.Contains(result, "50"),
+		"correct answer 47 or 49 or 50 not in response",
+	)
 }

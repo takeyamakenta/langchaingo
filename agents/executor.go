@@ -105,7 +105,6 @@ func (e *Executor) doIteration( // nolint
 		}
 		return steps, e.getReturn(finish, steps), nil
 	}
-
 	for _, action := range actions {
 		steps, err = e.doAction(ctx, steps, nameToTool, action)
 		if err != nil {
